@@ -35,12 +35,6 @@ namespace utec::algebra {
             update_steps();
         }
 
-        template<typename... Dims>
-        requires(sizeof...(Dims) != Rank)
-        explicit Tensor([[maybe_unused]] Dims... dims) {
-            throw std::invalid_argument("Number of dimensions do not match with " + std::to_string(Rank));
-        }
-
         Tensor(const Tensor& other) = default;
         Tensor(Tensor&& other) noexcept = default;
         Tensor& operator=(const Tensor& other) = default;
@@ -79,24 +73,12 @@ namespace utec::algebra {
         }
 
         template<typename... Idxs>
-        requires(sizeof...(Idxs) != Rank)
-        T& operator()([[maybe_unused]] Idxs... idxs) {
-            throw std::invalid_argument("Number of indexes do not match with " + std::to_string(Rank));
-        }
-
-        template<typename... Idxs>
         requires(sizeof...(Idxs) == Rank)
         const T& operator()(Idxs... idxs) const {
             size_t idx = 0;
             size_t dim = 0;
             ((static_cast<size_t>(idxs) < dims_array[dim] ? idx += steps[dim++] * idxs : throw std::out_of_range("Index out of bounds")), ...);
             return data[idx];
-        }
-
-        template<typename... Idxs>
-        requires(sizeof...(Idxs) != Rank)
-        const T& operator()([[maybe_unused]] Idxs... idxs) const {
-            throw std::invalid_argument("Number of indexes do not match with " + std::to_string(Rank));
         }
 
         T& operator()(const std::array<size_t, Rank>& idxs) {
@@ -150,12 +132,6 @@ namespace utec::algebra {
             data.resize(std::accumulate(new_shape.begin(), new_shape.end(), static_cast<size_t>(1), std::multiplies()));
             dims_array = new_shape;
             update_steps();
-        }
-
-        template<typename... Dims>
-        requires(sizeof...(Dims) != Rank)
-        void reshape([[maybe_unused]] const Dims... dims) {
-            throw std::invalid_argument("Number of dimensions do not match with " + std::to_string(Rank));
         }
 
         void fill(const T& value) noexcept {
@@ -393,11 +369,6 @@ namespace utec::algebra {
     }
 
     template <typename T, size_t Rank>
-    Tensor<T, Rank> transpose_2d([[maybe_unused]] const Tensor<T, Rank>& tensor) requires (Rank == 1) {
-        throw std::invalid_argument("Cannot transpose 1D tensor: need at least 2 dimensions");
-    }
-
-    template <typename T, size_t Rank>
     auto matrix_product(const Tensor<T, Rank>& tensor1, const Tensor<T, Rank>& tensor2) -> Tensor<T, Rank> {
         const auto& t1_shape = tensor1.shape();
         const auto& t2_shape = tensor2.shape();
@@ -459,11 +430,6 @@ namespace utec::algebra {
         return result;
     }
 
-    template <typename T, size_t Rank>
-    requires(Rank == 1)
-    Tensor<T, Rank> matrix_product(Tensor<T, Rank> tensor1, Tensor<T, Rank> tensor2) {
-        throw std::invalid_argument("Unable to compute product between 1D tensors: need at least 2 dimensions");
-    }
 }
 
 #endif //TENSOR_H
